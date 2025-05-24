@@ -8,6 +8,7 @@ export interface IUserToken
     | "password"
     | "activationCode"
     | "isActive"
+    | "email"
     | "fullName"
     | "profilePicture"
     | "username"
