@@ -4,7 +4,7 @@ import { DATABASE_URL } from "./env";
 const connect = async () => {
   try {
     await mongoose.connect(DATABASE_URL, {
-      dbName: "db-acara",
+      dbName: "db-sample",
     });
     return Promise.resolve("Database connected");
   } catch (error) {
