@@ -126,7 +126,9 @@ export default {
      */
     try {
       const user = req.user;
-      const result = await UserModel.findById(user?.id);
+      const result = await UserModel.findById(user?.id)
+        .select("-password -__v -confirmPassword -__v -activationCode")
+        .lean();
 
       res.status(200).json({
         message: "Success get user profile",
