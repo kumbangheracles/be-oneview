@@ -1,4 +1,4 @@
-import { IUserToken } from "../utils/jwt";
+import { IUserToken } from "../../utils/jwt";
 
 declare global {
   namespace Express {

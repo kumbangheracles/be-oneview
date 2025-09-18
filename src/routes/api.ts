@@ -6,6 +6,8 @@ import passport from "passport";
 import { Request, Response } from "express";
 import { SECRET, CLIENT_HOST } from "../utils/env";
 import { IUserToken } from "../utils/jwt";
+import mediaController from "../middlewares/media.controller";
+import mediaMiddleware from "../middlewares/media.middleware";
 const router = exporess.Router();
 
 router.post("/auth/register", authController.register);
@@ -30,4 +32,80 @@ router.get(
 );
 
 router.get("/auth/me", authMiddleware, authController.me);
+
+// Media
+router.post(
+  "/media/upload-single",
+  [authMiddleware, mediaMiddleware.single("file")],
+  mediaController.single
+  /*
+  #swagger.tags = ['Media']
+  #swagger.security = [{
+    "bearerAuth": {}
+  }]
+  #swagger.requestBody = {
+    required: true,
+    content: {
+      "multipart/form-data": {
+        schema: {
+          type: "object",
+          properties: {
+            file: {
+              type: "string",
+              format: "binary"
+            }
+          }
+        }
+      }
+    }
+  }
+  */
+);
+router.post(
+  "/media/upload-multiple",
+  [authMiddleware, mediaMiddleware.multiple("files")],
+  mediaController.multiple
+  /*
+  #swagger.tags = ['Media']
+  #swagger.security = [{
+    "bearerAuth": {}
+  }]
+  #swagger.requestBody = {
+    required: true,
+    content: {
+      "multipart/form-data": {
+        schema: {
+          type: "object",
+          properties: {
+            files: {
+              type: "array",
+              items: {
+                type: "string",
+                format: "binary"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  */
+);
+router.delete(
+  "/media/remove",
+  [authMiddleware],
+  mediaController.remove
+  /*
+  #swagger.tags = ['Media']
+  #swagger.security = [{
+    "bearerAuth": {}
+  }]
+  #swagger.requestBody = {
+    required: true,
+    schema: {
+      $ref: "#/components/schemas/RemoveMediaRequest"
+    }
+  }
+  */
+);
 export default router;

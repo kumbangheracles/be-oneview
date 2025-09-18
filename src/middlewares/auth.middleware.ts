@@ -31,7 +31,7 @@ export default (req: Request, res: Response, next: NextFunction) => {
     });
   }
 
-  (req as IReqUser).user = user;
+  (req as Request).user = user;
 
   next();
 };
