@@ -4,6 +4,7 @@ import UserModel from "../models/user.model";
 import { encrypt } from "../utils/encryption";
 import { generateToken } from "../utils/jwt";
 import { IReqUser } from "../middlewares/auth.middleware";
+import passport, { Passport } from "passport";
 type TRegister = {
   fullName: string;
   username: string;
@@ -45,6 +46,7 @@ export default {
         username,
         email,
         password,
+        provider: "local",
       });
       res.status(200).json({
         message: "Success Registration!",
@@ -80,6 +82,7 @@ export default {
             email: identifier,
           },
         ],
+        provider: "local",
       });
 
       // validasi identifier
@@ -112,6 +115,52 @@ export default {
     } catch (error: any) {
       const err = error as Error;
       res.status(400).json({
+        message: err.message,
+        data: null,
+      });
+    }
+  },
+  /**
+     #swagger.requestBody = {
+     required: false,
+     schema: {
+     $ref: "#components/schemas/GoogleLoginRequest"}
+     }
+     
+     */
+  async googleLogin(req: Request, res: Response) {
+    try {
+      const { email, fullName, profilePicture, providerId } = req.body;
+
+      let user = await UserModel.findOne({
+        $or: [{ providerId }, { email }],
+        provider: "google",
+      });
+
+      if (!user) {
+        user = await UserModel.create({
+          fullName,
+          username: email.split("@")[0],
+          email,
+          profilePicture,
+          provider: "google",
+          providerId,
+          isActive: true,
+        });
+      }
+
+      const token = generateToken({
+        id: user._id,
+        role: user.role,
+      });
+
+      return res.status(200).json({
+        message: "Google login success",
+        data: token,
+      });
+    } catch (error) {
+      const err = error as Error;
+      return res.status(400).json({
         message: err.message,
         data: null,
       });

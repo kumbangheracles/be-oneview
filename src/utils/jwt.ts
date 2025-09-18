@@ -14,6 +14,7 @@ export interface IUserToken
     | "username"
   > {
   id?: Types.ObjectId;
+  email?: string;
 }
 
 export const generateToken = (user: IUserToken): string => {

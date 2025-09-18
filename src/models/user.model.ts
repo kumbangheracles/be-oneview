@@ -4,11 +4,16 @@ export interface User {
   fullName: string;
   username: string;
   email: string;
-  password: string;
+  password?: string | undefined;
   role: string;
   profilePicture: string;
   isActive: boolean;
   activationCode: string;
+  // phoneNumber: string;
+  provider?: "local" | "google";
+  providerId?: string;
+  avatar?: string;
+  googleId?: string;
 }
 
 const Schema = mongoose.Schema;
@@ -20,15 +25,20 @@ const UserSchema = new Schema<User>(
     },
     username: {
       type: Schema.Types.String,
-      required: true,
+      // required: true,
+      unique: true,
+    },
+    avatar: {
+      type: Schema.Types.String,
     },
     email: {
       type: Schema.Types.String,
       required: true,
+      unique: true,
     },
     password: {
       type: Schema.Types.String,
-      required: true,
+      // required: true,
     },
     role: {
       type: Schema.Types.String,
@@ -46,6 +56,13 @@ const UserSchema = new Schema<User>(
     activationCode: {
       type: Schema.Types.String,
     },
+    provider: { type: String, enum: ["local", "google"], default: "local" },
+    providerId: {
+      type: Schema.Types.String,
+    },
+    googleId: {
+      type: Schema.Types.String,
+    },
   },
   {
     timestamps: true,
@@ -53,8 +70,10 @@ const UserSchema = new Schema<User>(
 );
 
 UserSchema.pre("save", function (next) {
-  const user = this;
-  user.password = encrypt(user.password);
+  const user = this as any;
+  if (user.password) {
+    user.password = encrypt(user.password);
+  }
   next();
 });
 
