@@ -5,8 +5,8 @@ import jwt from "jsonwebtoken";
 import passport from "passport";
 import { Request, Response } from "express";
 import { SECRET, CLIENT_HOST } from "../utils/env";
-import { IUserToken } from "../utils/jwt";
-import mediaController from "../middlewares/media.controller";
+import { generateToken, IUserToken } from "../utils/jwt";
+import mediaController from "../controllers/media.controller";
 import mediaMiddleware from "../middlewares/media.middleware";
 const router = exporess.Router();
 
@@ -22,7 +22,8 @@ router.get(
   (req: Request, res: Response) => {
     try {
       const user = req.user as IUserToken;
-      const token = jwt.sign({ id: user?.id, email: user?.email }, SECRET);
+      const token = generateToken(user);
+
       res.redirect(`${CLIENT_HOST}/auth-success?token=${token}`);
     } catch (error) {
       console.error("Google login error", error);

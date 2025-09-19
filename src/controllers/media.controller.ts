@@ -2,7 +2,7 @@ import { Response, Request } from "express";
 
 import uploader from "../utils/uploader";
 import response from "../utils/response";
-import { IReqUser } from "./auth.middleware";
+import { IReqUser } from "../middlewares/auth.middleware";
 
 export default {
   async single(req: Request, res: Response) {
