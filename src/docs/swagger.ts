@@ -26,6 +26,10 @@ const doc = {
         identifier: "ahmadherkal",
         password: "1234",
       },
+
+      ActivationRequest: {
+        code: "abcdef",
+      },
     },
   },
 };

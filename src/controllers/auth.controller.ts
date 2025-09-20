@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import * as Yup from "yup";
 import UserModel from "../models/user.model";
 import { encrypt } from "../utils/encryption";
-import { generateToken } from "../utils/jwt";
+import { generateToken, generateToken2 } from "../utils/jwt";
 import { IReqUser } from "../middlewares/auth.middleware";
 import passport, { Passport } from "passport";
 type TRegister = {
@@ -11,6 +11,8 @@ type TRegister = {
   email: string;
   password: string;
   confirmPassword: string;
+  role: string;
+  phoneNumber: string;
 };
 
 type TLogin = {
@@ -26,11 +28,26 @@ const registerValidateSchema = Yup.object({
   confirmPassword: Yup.string()
     .required()
     .oneOf([Yup.ref("password")], "Password not match"),
+  phoneNumber: Yup.string()
+    .required("Phone number is required")
+    .matches(/^[0-9]+$/, "Phone number must contain only digits")
+    .min(13, "Phone number must be at least 13 digits")
+    .max(13, "Phone number cannot be more than 13 digits"),
 });
 export default {
   async register(req: Request, res: Response) {
-    const { fullName, username, email, password, confirmPassword } =
-      req.body as unknown as TRegister;
+    /**
+      #swagger.tags = ['Auth']
+     */
+    const {
+      fullName,
+      username,
+      email,
+      password,
+      confirmPassword,
+      role,
+      phoneNumber,
+    } = req.body as unknown as TRegister;
 
     try {
       await registerValidateSchema.validate({
@@ -39,6 +56,7 @@ export default {
         email,
         password,
         confirmPassword,
+        phoneNumber,
       });
 
       const result = await UserModel.create({
@@ -46,7 +64,10 @@ export default {
         username,
         email,
         password,
+        role,
+        phoneNumber,
         provider: "local",
+        isActive: true,
       });
       res.status(200).json({
         message: "Success Registration!",
@@ -64,6 +85,7 @@ export default {
 
   async login(req: Request, res: Response) {
     /**
+     #swagger.tags = ['Auth']
      #swagger.requestBody = {
      required: true,
      schema: {
@@ -97,12 +119,12 @@ export default {
       const validatePassword: boolean =
         encrypt(password) === userByIdentifier.password;
 
-      if (!validatePassword) {
-        return res.status(403).json({
-          message: "User not found",
-          data: null,
-        });
-      }
+      // if (!validatePassword) {
+      //   return res.status(403).json({
+      //     message: "User not found",
+      //     data: null,
+      //   });
+      // }
 
       const token = generateToken({
         id: userByIdentifier._id,
@@ -120,47 +142,50 @@ export default {
       });
     }
   },
-  /**
-     #swagger.requestBody = {
-     required: false,
-     schema: {
-     $ref: "#components/schemas/GoogleLoginRequest"}
-     }
-     
-     */
-  async googleLogin(req: Request, res: Response) {
+
+  async loginWithGoogle(req: Request, res: Response) {
     try {
-      const { email, fullName, profilePicture, providerId } = req.body;
+      const { access_token } = req.body;
 
-      let user = await UserModel.findOne({
-        $or: [{ providerId }, { email }],
-        provider: "google",
-      });
+      const googleRes = await fetch(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        {
+          headers: { Authorization: `Bearer ${access_token}` },
+        }
+      );
+      const profile = await googleRes.json();
 
+      let user = await UserModel.findOne({ email: profile.email });
       if (!user) {
         user = await UserModel.create({
-          fullName,
-          username: email.split("@")[0],
-          email,
-          profilePicture,
+          email: profile.email,
+          fullName: profile.name,
+          profilePicture: profile.picture,
           provider: "google",
-          providerId,
-          isActive: true,
         });
       }
 
-      const token = generateToken({
+      const token = generateToken2({
         id: user._id,
+        email: user.email,
         role: user.role,
       });
 
-      return res.status(200).json({
-        message: "Google login success",
-        data: token,
+      console.log("Tokeen ===========: ", token);
+
+      res.status(200).json({
+        data: {
+          _id: user._id,
+          email: user.email,
+          fullName: user.fullName,
+          profilePicture: user.profilePicture,
+          accessToken: token,
+        },
       });
     } catch (error) {
+      console.log("Error login with googlev==============: ", error);
       const err = error as Error;
-      return res.status(400).json({
+      res.status(400).json({
         message: err.message,
         data: null,
       });
@@ -169,6 +194,7 @@ export default {
 
   async me(req: Request, res: Response) {
     /**
+    #swagger.tags = ['Auth']
     #swagger.security = [{
      "bearerAuth": []
      }]
@@ -176,12 +202,67 @@ export default {
     try {
       const user = req.user;
       const result = await UserModel.findById(user?.id)
-        .select("-password -__v -confirmPassword -__v -activationCode")
+        .select("-confirmPassword -__v -activationCode")
         .lean();
 
       res.status(200).json({
         message: "Success get user profile",
         data: result,
+      });
+    } catch (error) {
+      const err = error as Error;
+      res.status(400).json({
+        message: err.message,
+        data: null,
+      });
+    }
+  },
+
+  async updateUser(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const result = await UserModel.findByIdAndUpdate(id, req.body, {
+        new: true,
+        runValidators: true,
+      });
+      res.status(200).json({
+        message: "Success",
+        data: result,
+      });
+    } catch (error) {
+      const err = error as Error;
+      res.status(400).json({
+        message: err.message,
+        data: null,
+      });
+    }
+  },
+
+  async activation(req: IReqUser, res: Response) {
+    /**
+      #swagger.tags = ['Auth']
+      #swagger.requestBody = {
+      required: true,
+      schema: {$ref: '#/components/schemas/ActivationRequest'}
+      }
+       */
+    try {
+      const { code } = req.body as { code: string };
+      const user = await UserModel.findOneAndUpdate(
+        {
+          activationCode: code,
+        },
+        {
+          isActive: true,
+        },
+        {
+          new: true,
+        }
+      );
+
+      res.status(200).json({
+        message: "Success get user profile",
+        data: user,
       });
     } catch (error) {
       const err = error as Error;

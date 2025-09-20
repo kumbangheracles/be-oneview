@@ -2,22 +2,19 @@
   "openapi": "3.0.0",
   "info": {
     "version": "v0.0.1",
-    "title": "Dokumentasi API ",
-    "description": "Dokumentasi API "
+    "title": "Dokumentasi API",
+    "description": "Dokumentasi API"
   },
   "servers": [
     {
-      "url": "http://localhost:3000/api",
+      "url": "http://localhost:3001/api",
       "description": "Local Server"
-    },
-    {
-      "url": "",
-      "description": "Deploy Server"
     }
   ],
   "paths": {
     "/auth/register": {
       "post": {
+        "tags": ["Auth"],
         "description": "",
         "responses": {
           "200": {
@@ -57,6 +54,7 @@
     },
     "/auth/login": {
       "post": {
+        "tags": ["Auth"],
         "description": "",
         "responses": {
           "200": {
@@ -86,8 +84,20 @@
         }
       }
     },
+    "/google": {
+      "get": {
+        "tags": ["Auth"],
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/auth/me": {
       "get": {
+        "tags": ["Auth"],
         "description": "",
         "responses": {
           "200": {
@@ -105,6 +115,133 @@
             "bearerAuth": []
           }
         ]
+      }
+    },
+    "/auth/activation": {
+      "post": {
+        "tags": ["Auth"],
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivationRequest"
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivationRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/media/upload-single": {
+      "post": {
+        "tags": ["Media"],
+        "description": "",
+        "responses": {
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": {}
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/media/upload-multiple": {
+      "post": {
+        "tags": ["Media"],
+        "description": "",
+        "responses": {
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": {}
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/media/remove": {
+      "delete": {
+        "tags": ["Media"],
+        "description": "",
+        "responses": {
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": {}
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemoveMediaRequest"
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "$ref": "#/components/schemas/RemoveMediaRequest"
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -130,6 +267,18 @@
         },
         "xml": {
           "name": "LoginRequest"
+        }
+      },
+      "ActivationRequest": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "abcdef"
+          }
+        },
+        "xml": {
+          "name": "ActivationRequest"
         }
       }
     }

@@ -23,3 +23,4 @@ export const CLOUDINARY_API_SECRET: string =
   process.env.CLOUDINARY_API_SECRET || "";
 
 export const CLIENTID: string = process.env.CLIENTID || "";
+export const CLIENT_SECRET: string = process.env.CLIENT_SECRET || "";

@@ -24,6 +24,17 @@ export const generateToken = (user: IUserToken): string => {
   return token;
 };
 
+export const generateToken2 = (user: IUserToken): string => {
+  const payload = {
+    id: user.id?.toString(),
+    email: user.email,
+    role: user.role,
+    provider: user.provider,
+  };
+
+  return jwt.sign(payload, SECRET, { expiresIn: "1h" });
+};
+
 export const getUserData = (token: string) => {
   const user = jwt.verify(token, SECRET) as IUserToken;
   return user;

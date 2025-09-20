@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import passport from "passport";
 import { Request, Response } from "express";
 import { SECRET, CLIENT_HOST } from "../utils/env";
-import { generateToken, IUserToken } from "../utils/jwt";
+import { generateToken, generateToken2, IUserToken } from "../utils/jwt";
 import mediaController from "../controllers/media.controller";
 import mediaMiddleware from "../middlewares/media.middleware";
 const router = exporess.Router();
@@ -13,26 +13,35 @@ const router = exporess.Router();
 router.post("/auth/register", authController.register);
 router.post("/auth/login", authController.login);
 router.get(
-  "/google",
+  "/auth/google",
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
+
 router.get(
-  "/google",
+  "/auth/callback/google",
   passport.authenticate("google", { session: false }),
   (req: Request, res: Response) => {
+    /**
+      #swagger.tags = ['Auth']
+     */
     try {
       const user = req.user as IUserToken;
-      const token = generateToken(user);
+      const token = generateToken2(user);
 
-      res.redirect(`${CLIENT_HOST}/auth-success?token=${token}`);
+      res.redirect(`${CLIENT_HOST}/google-login-success?token=${token}`);
     } catch (error) {
       console.error("Google login error", error);
-      res.redirect(`${CLIENT_HOST}/login?error=google_failed`);
+      res.redirect(`${CLIENT_HOST}/failed-google-login`);
     }
   }
 );
 
+router.post("/auth/login-with-google", authController.loginWithGoogle);
+
 router.get("/auth/me", authMiddleware, authController.me);
+
+router.patch("/auth/update/:id", authMiddleware, authController.updateUser);
+router.post("/auth/activation", authController.activation);
 
 // Media
 router.post(

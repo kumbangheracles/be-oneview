@@ -4,6 +4,7 @@ import bodyParser from "body-parser";
 import db from "./utils/database";
 import docs from "./docs/route";
 import cors from "cors";
+import "./utils/passports";
 async function init() {
   try {
     const result = await db();

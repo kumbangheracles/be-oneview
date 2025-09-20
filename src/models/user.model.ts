@@ -14,6 +14,7 @@ export interface User {
   providerId?: string;
   avatar?: string;
   googleId?: string;
+  phoneNumber?: string;
 }
 
 const Schema = mongoose.Schema;
@@ -44,10 +45,11 @@ const UserSchema = new Schema<User>(
       type: Schema.Types.String,
       enum: ["admin", "user"],
       default: "user",
+      required: true,
     },
     profilePicture: {
       type: Schema.Types.String,
-      default: "user.jpg",
+      default: "/images/default-img.jpg",
     },
     isActive: {
       type: Schema.Types.Boolean,
@@ -61,6 +63,9 @@ const UserSchema = new Schema<User>(
       type: Schema.Types.String,
     },
     googleId: {
+      type: Schema.Types.String,
+    },
+    phoneNumber: {
       type: Schema.Types.String,
     },
   },

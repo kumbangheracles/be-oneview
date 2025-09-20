@@ -1,6 +1,6 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy, Profile } from "passport-google-oauth20";
-import { CLIENTID, SECRET } from "./env";
+import { CLIENT_SECRET, CLIENTID, SECRET } from "./env";
 import { User } from "../models/user.model";
 import UserModel from "../models/user.model";
 passport.serializeUser((user: any, done) => {
@@ -15,8 +15,8 @@ passport.use(
   new GoogleStrategy(
     {
       clientID: CLIENTID,
-      clientSecret: SECRET,
-      callbackURL: "/auth/google/callback",
+      clientSecret: CLIENT_SECRET,
+      callbackURL: "/api/auth/callback/google",
     },
     async (
       accessToken: string,
@@ -34,11 +34,12 @@ passport.use(
           isActive: true,
           provider: "google",
           providerId: profile.id,
-          // password: "",
+          // phoneNumber: profile?.phoneNumber
           activationCode: "",
         };
 
-        let user = await UserModel.findOneAndUpdate({ googleId: profile?.id });
+        let user = await UserModel.findOne({ providerId: profile.id });
+
         if (!user) {
           user = await UserModel.create(userData);
         }
