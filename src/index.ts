@@ -5,6 +5,7 @@ import db from "./utils/database";
 import docs from "./docs/route";
 import cors from "cors";
 import "./utils/passports";
+import { DEFAULT_PORT } from "./utils/env";
 async function init() {
   try {
     const result = await db();
@@ -20,7 +21,7 @@ async function init() {
         data: "null",
       });
     });
-    const PORT = 3001;
+    const PORT = DEFAULT_PORT || 3001;
 
     app.use("/api", router);
 
