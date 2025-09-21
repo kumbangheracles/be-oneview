@@ -27,4 +27,4 @@ export const CLIENTID: string = process.env.CLIENTID || "";
 export const CLIENT_SECRET: string = process.env.CLIENT_SECRET || "";
 export const CLIENT_CALLBACKURL: string =
   process.env.CLIENT_CALLBACKURL ||
-  "https://be-oneview.vercel.app/api/auth/callback/google";
+  "http://localhost:3001/api/auth/callback/google";

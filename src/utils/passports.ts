@@ -1,6 +1,6 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy, Profile } from "passport-google-oauth20";
-import { CLIENT_SECRET, CLIENTID, SECRET } from "./env";
+import { CLIENT_SECRET, CLIENTID, SECRET, CLIENT_CALLBACKURL } from "./env";
 import { User } from "../models/user.model";
 import UserModel from "../models/user.model";
 passport.serializeUser((user: any, done) => {
@@ -16,7 +16,7 @@ passport.use(
     {
       clientID: CLIENTID,
       clientSecret: CLIENT_SECRET,
-      callbackURL: "/api/auth/callback/google",
+      callbackURL: CLIENT_CALLBACKURL,
     },
     async (
       accessToken: string,
